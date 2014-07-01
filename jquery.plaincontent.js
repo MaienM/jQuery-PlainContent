@@ -49,6 +49,7 @@ function _setPlainContent(content) {
 	$(this).focus();
 
 	// Set the content.
+	$(this).html('');
 	try {
 		// This should work in most browsers.
 		document.execCommand('insertText', false, content);
