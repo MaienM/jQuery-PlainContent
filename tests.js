@@ -1,4 +1,8 @@
+// Extra tests, in the form of [name, input, setoptions, output, getoptions]
+var tests = []
+
 function startTests() {
+	// Get the test files.
 	$.ajax({
 		url: './tests/list.json',
 		dataType: 'json'
@@ -11,25 +15,18 @@ function startTests() {
 			assert.ok(false, 'Getting tests list');
 		});
 	});
+
+	// Perform the inline tests.
+	_.each(tests, function(testdata) {
+		doTest.apply(this, testdata);
+	});
 }
 
 function startTest(testfile) {
 	// Load the testfile.
 	$.ajax('./tests/' + testfile)
 	.done(function(content) {
-		QUnit.test(testfile, function(assert) {
-			// Create dom element and set value.
-			var elem = $('<div contenteditable></div>');
-			$('body').append(elem);
-			$(elem).plainContent(content)
-
-			// Check parsed data.
-			var result = $(elem).plainContent();
-			assert.equal(result, content, 'Plain content matches source content');
-
-			// Remove dom element.
-			if (result == content) $(elem).remove();
-		});
+		doTest(testfile, content, {}, content, {});
 	})
 	.fail(function(data) {
 		QUnit.test(testfile, function(assert) {
@@ -37,5 +34,31 @@ function startTest(testfile) {
 		});
 	});
 }
+
+function doTest(name, input, setopts, output, getopts) {
+	QUnit.test(name, function(assert) {
+		// Create dom element and set value.
+		var elem = $('<div contenteditable></div>');
+		$('body').append(elem);
+		$(elem).plainContent(input, setopts)
+
+		// Check parsed data.
+		var result = $(elem).plainContent(getopts);
+		assert.equal(result, output, 'Output matches expected output');
+
+		// Remove dom element.
+		if (result == output) $(elem).remove();
+	});
+}
+
+tests.push([
+	'101-keep-tags',
+	'Hello<span class="keep"></span>world',
+	{},
+	'Hello<span class="keep"></span>world',
+	{
+		'keep': '.keep',
+	}
+]);
 
 $(startTests);
